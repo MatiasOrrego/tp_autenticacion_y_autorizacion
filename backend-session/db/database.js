@@ -4,7 +4,9 @@ export const database = async () => {
     const connection = await mysql2.createConnection ({
         host: "localhost",
         user: "root",
-        database: "users",
+        database: "db_system",
     })
     return connection;
 }
+
+export default database;
