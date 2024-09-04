@@ -1,15 +1,24 @@
-import database from '../database.js';
+import database from '../db/database.js';
 
 export const controllers = {
-    register: (req, res) => {
+    register: async (req, res) => {
         const { username, password } = req.body;
-
-        // Verificar si el usuario ya existe
-        const userExists = database.user.find(u => u.username === username);
-
-        if (userExists) {
-            return res.status(400).json({ message: 'El usuario ya existe' });
+    
+        try {
+            // Verificar si el usuario ya existe
+            const [rows] = await database.query('SELECT * FROM users WHERE username = ?', [username]);
+            if (rows.length > 0) {
+                return res.status(400).json({ message: 'El usuario ya existe' });
+            }
+    
+            // Crear nuevo usuario
+            await database.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, password]);
+            res.status(201).json({ message: 'Usuario creado exitosamente' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error del servidor' });
         }
+<<<<<<< HEAD
 
         // Crear nuevo usuario
         const newUser = {  
@@ -19,6 +28,8 @@ export const controllers = {
         database.user.push(newUser);
 
         return res.json({ message: 'Usuario creado exitosamente', user: { id: newUser.id, username: newUser.username } });
+=======
+>>>>>>> f4b5f01288a1b8e5ff58991fe960f25328f4e608
     },
 
     login: (req, res) => {

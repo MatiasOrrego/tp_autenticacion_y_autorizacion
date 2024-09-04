@@ -8,3 +8,5 @@ export const database = async () => {
     })
     return connection;
 }
+
+export default database;
