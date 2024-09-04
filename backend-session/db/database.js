@@ -1,12 +1,12 @@
 import mysql2 from 'mysql2/promise';
 
-export const database = async () => {
-    const connection = await mysql2.createConnection ({
-        host: "localhost",
-        user: "root",
-        database: "db_system",
-    })
-    return connection;
-}
+const pool = mysql2.createPool({
+    host: "localhost",
+    user: "root",
+    database: "db_system",
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
 
-export default database;
+export default pool;

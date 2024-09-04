@@ -1,4 +1,4 @@
-import database from '../db/database.js';
+import pool from '../db/database.js';
 
 export const controllers = {
     register: async (req, res) => {
@@ -6,59 +6,69 @@ export const controllers = {
     
         try {
             // Verificar si el usuario ya existe
-            const [rows] = await database.query('SELECT * FROM users WHERE username = ?', [username]);
+            const [rows] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
             if (rows.length > 0) {
                 return res.status(400).json({ message: 'El usuario ya existe' });
             }
     
             // Crear nuevo usuario
-            await database.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, password]);
+            await pool.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, password]);
             res.status(201).json({ message: 'Usuario creado exitosamente' });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Error del servidor' });
         }
-<<<<<<< HEAD
-
-        // Crear nuevo usuario
-        const newUser = {  
-            "username": username,
-            "password": password 
-        };
-        database.user.push(newUser);
-
-        return res.json({ message: 'Usuario creado exitosamente', user: { id: newUser.id, username: newUser.username } });
-=======
->>>>>>> f4b5f01288a1b8e5ff58991fe960f25328f4e608
     },
 
-    login: (req, res) => {
+    login: async (req, res) => {
         const { username, password } = req.body;
 
-    // Buscar usuario
-    const user = database.user.find(u => u.username === username && u.password === password);
+        try {
+            // Buscar usuario en la base de datos
+            const [rows] = await pool.query('SELECT * FROM users WHERE username = ? AND password = ?', [username, password]);
 
-    if (user) {
-        // Guardar información del usuario en la sesión
-        req.session.userId = user.id;
-        req.session.username = user.username;
+            if (rows.length > 0) {
+                const user = rows[0];
 
-        return res.json({ 
-            message: 'Inicio de sesión exitoso', 
-            user: { id: user.id, username: user.username } });
-    } else {
-        return res.status(401).json({ message: 'Credenciales incorrectas' });
-    }
-},
-    session:(req, res) => {
+                // Guardar información del usuario en la sesión
+                req.session.userId = user.id;
+                req.session.username = user.username;
+
+                return res.json({ 
+                    message: 'Inicio de sesión exitoso', 
+                    user: { id: user.id, username: user.username } 
+                });
+            } else {
+                return res.status(401).json({ message: 'Credenciales incorrectas' });
+            }
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: 'Error del servidor' });
+        }
+    },
+    session: async (req, res) => {
         if (req.session.userId) {
-            return res.json({ 
-                loggedIn: true, 
-                user: { id: req.session.userId, username: req.session.username } });
+            try {
+                // Buscar usuario en la base de datos
+                const [rows] = await pool.query('SELECT id, username FROM users WHERE id = ?', [req.session.userId]);
+
+                if (rows.length > 0) {
+                    const user = rows[0];
+                    return res.json({ 
+                        loggedIn: true, 
+                        user: { id: user.id, username: user.username } 
+                    });
+                } else {
+                    return res.status(401).json({ loggedIn: false, message: 'No hay sesión activa' });
+                }
+            } catch (error) {
+                console.error(error);
+                return res.status(500).json({ message: 'Error del servidor' });
+            }
         } else {
             return res.status(401).json({ loggedIn: false, message: 'No hay sesión activa' });
         }
-},
+    },
     logout:(req, res) => {
             console.log(req.session)
             req.session.destroy(err => {
