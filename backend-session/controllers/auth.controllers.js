@@ -12,7 +12,10 @@ export const controllers = {
         }
 
         // Crear nuevo usuario
-        const newUser = { id: database.user.length + 1, username, password };
+        const newUser = {  
+            "username": username,
+            "password": password 
+        };
         database.user.push(newUser);
 
         return res.json({ message: 'Usuario creado exitosamente', user: { id: newUser.id, username: newUser.username } });
