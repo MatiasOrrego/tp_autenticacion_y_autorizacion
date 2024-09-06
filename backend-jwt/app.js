@@ -3,13 +3,11 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import cors from 'cors';
+import morgan from 'morgan';
 
 import { PORT } from './config/env.js';
-import generarJwt from './helpers/generar-jwt.js';
-import validarJwt from './middlewares/validar-jwt.js';
-import pool  from './db/database.js';
 import authRouter from './routes/auth.routes.js';
-import morgan from 'morgan';
+
 
 
 const app = express();
@@ -29,7 +27,7 @@ app.use(session({
     cookie: { secure: false } // Usar 'true' si usas HTTPS
 }));
 
-
+app.use(authRouter)
 
 // Servidor escuchando
 app.listen(PORT, () => {
